@@ -62,7 +62,7 @@
     rawEl.textContent = '';
     try {
       // example: GET /health (adjust path if your app uses /health or /)
-      const res = await fetch(RAILWAY_URL + '/health', { method: 'GET', cache: 'no-cache' });
+      const res = await fetch(RAILWAY_URL + '/', { method: 'GET', cache: 'no-cache' });
       const txt = await res.text();
       rawEl.textContent = `${res.status} ${res.statusText}\n\n${txt}`;
       if (res.ok) {
