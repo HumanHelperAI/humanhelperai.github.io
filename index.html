@@ -1,17 +1,86 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Human Helper AI</title>
   <style>
-    body {font-family: Arial, Helvetica, sans-serif; padding:40px; background:#f6f7fb; color:#111}
-    h1 {color:#0b63d1}
-    p {font-size:18px}
+    :root{--bg:#f7fbff;--card:#fff;--accent:#0b63d1;--muted:#666}
+    body{font-family:Inter,system-ui,Arial,sans-serif;background:var(--bg);margin:0;padding:20px;color:#111}
+    .wrap{max-width:900px;margin:28px auto}
+    header{display:flex;align-items:center;gap:16px}
+    h1{margin:0;font-size:1.6rem;color:var(--accent)}
+    .card{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 6px 22px rgba(20,30,50,.06);margin-top:16px}
+    .muted{color:var(--muted);font-size:.95rem}
+    .btn{display:inline-block;background:var(--accent);color:#fff;padding:10px 14px;border-radius:8px;text-decoration:none}
+    .status {font-weight:600;margin-left:8px}
+    pre{background:#111;color:#0f0;padding:12px;border-radius:8px;overflow:auto;color:#0f172a}
+    footer{margin-top:22px;text-align:center;color:var(--muted);font-size:.9rem}
   </style>
 </head>
 <body>
-  <h1>Welcome to Human Helper AI 🚀</h1>
-  <p>This is the test page for my domain. — Murali</p>
+  <div class="wrap">
+    <header>
+      <h1>Human Helper AI</h1>
+      <div class="muted">— lightweight landing + backend status</div>
+    </header>
+
+    <div class="card" id="overview">
+      <p class="muted">This page shows the status of your backend and provides quick links.</p>
+
+      <div style="margin-top:12px;">
+        <strong>Backend health:</strong>
+        <span id="health" class="status muted">checking…</span>
+        <a class="btn" id="refresh">Refresh</a>
+      </div>
+
+      <div style="margin-top:12px;">
+        <strong>API response (raw):</strong>
+        <pre id="apiraw">—</pre>
+      </div>
+    </div>
+
+    <div class="card" id="links">
+      <strong>Links</strong>
+      <ul>
+        <li>GitHub Pages: <a href="https://humanhelperai.github.io" target="_blank">humanhelperai.github.io</a></li>
+        <li>Railway app: <a href="https://web-production-e484.up.railway.app" target="_blank">Railway backend</a></li>
+      </ul>
+    </div>
+
+    <footer>Deployed static site (GitHub Pages). Uses fetch to your Railway endpoint.</footer>
+  </div>
+
+<script>
+  // CHANGE THIS to your live Railway base URL if different:
+  const RAILWAY_URL = "https://web-production-e484.up.railway.app";
+
+  async function checkHealth(){
+    const healthEl = document.getElementById('health');
+    const rawEl = document.getElementById('apiraw');
+    healthEl.textContent = 'checking…';
+    rawEl.textContent = '';
+    try {
+      // example: GET /health (adjust path if your app uses /health or /)
+      const res = await fetch(RAILWAY_URL + '/health', { method: 'GET', cache: 'no-cache' });
+      const txt = await res.text();
+      rawEl.textContent = `${res.status} ${res.statusText}\n\n${txt}`;
+      if (res.ok) {
+        healthEl.textContent = 'online';
+        healthEl.style.color = '#0a8a3f';
+      } else {
+        healthEl.textContent = 'error';
+        healthEl.style.color = '#c0392b';
+      }
+    } catch (err) {
+      healthEl.textContent = 'unreachable';
+      healthEl.style.color = '#c0392b';
+      rawEl.textContent = String(err);
+    }
+  }
+
+  document.getElementById('refresh').addEventListener('click', checkHealth);
+  checkHealth();
+</script>
 </body>
 </html>
