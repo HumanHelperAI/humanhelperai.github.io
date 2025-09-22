@@ -14,8 +14,13 @@
     .muted{color:var(--muted);font-size:.95rem}
     .btn{display:inline-block;background:var(--accent);color:#fff;padding:10px 14px;border-radius:8px;text-decoration:none}
     .status {font-weight:600;margin-left:8px}
-    pre{background:#111;color:#0f0;padding:12px;border-radius:8px;overflow:auto;color:#0f172a}
-    footer{margin-top:22px;text-align:center;color:var(--muted);font-size:.9rem}
+    pre {
+  background:#111;
+  color:#0f0;   /* bright green */
+  padding:12px;
+  border-radius:8px;
+  overflow:auto;
+}
   </style>
 </head>
 <body>
@@ -53,7 +58,7 @@
 
 <script>
   // CHANGE THIS to your live Railway base URL if different:
-  const RAILWAY_URL = "https://web-production-e484.up.railway.app";
+   const res = await fetch(RAILWAY_URL + '/', { method: 'GET', credentials: 'omit', cache: 'no-cache' });
 
   async function checkHealth(){
     const healthEl = document.getElementById('health');
