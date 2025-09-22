@@ -2,55 +2,100 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Human Helper.AI</title>
+
   <style>
-    :root{--bg:#f7fbff;--card:#fff;--accent:#0b63d1;--muted:#666}
-    body{font-family:Inter,system-ui,Arial,sans-serif;background:var(--bg);margin:0;padding:20px;color:#111}
-    .wrap{max-width:900px;margin:28px auto}
-    header{display:flex;align-items:center;gap:16px}
-    h1{margin:0;font-size:1.6rem;color:var(--accent)}
-    .card{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 6px 22px rgba(20,30,50,.06);margin-top:16px}
-    .muted{color:var(--muted);font-size:.95rem}
-    .btn{display:inline-block;background:var(--accent);color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:.9rem}
-    footer{margin-top:22px;text-align:center;color:var(--muted);font-size:.9rem}
-
-    /* API response box */
-    pre{background:#111;color:#0f0;padding:12px;border-radius:8px;overflow:auto;font-size:.9rem}
-
-    /* Status pill styles */
-    .status {
-      display: inline-block;
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      margin-left: 8px;
-      color: #fff;
+    /* ---- Palette & Layout ---- */
+    :root{
+      --bg: #f3f8fb;
+      --card: #ffffff;
+      --accent: #1565d8;      /* primary blue */
+      --accent-2: #0b63d1;
+      --muted: #586270;
+      --glass: rgba(255,255,255,0.7);
+      --success: #0a8a3f;     /* green */
+      --warn: #d68b00;        /* yellow/orange */
+      --danger: #c0392b;      /* red */
+      --info: #1e88e5;        /* blue for checking */
+      --mono-bg: #0b1220;    /* pre background */
+      --mono-text: #20ff6a;  /* pre text bright green */
     }
-    .status.online { background: #0a8a3f; }     /* green */
-    .status.error { background: #c0392b; }      /* red */
-    .status.checking { background: #f39c12; }   /* yellow */
-    .status.unreachable { background: #2980b9; } /* blue */
+
+    html,body{height:100%;margin:0;padding:0;background:linear-gradient(180deg,#f7fbff 0%, #eef6fb 100%);font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; color:#15202b}
+    .wrap{max-width:980px;margin:28px auto;padding:18px}
+
+    header{display:flex;align-items:center;gap:18px}
+    h1{margin:0;font-size:1.6rem;color:var(--accent);letter-spacing:0.6px}
+    .sub{color:var(--muted);font-size:.95rem;margin-left:4px}
+
+    /* Card */
+    .card{background:var(--card);border-radius:14px;padding:20px;box-shadow:0 10px 30px rgba(28,40,60,0.07);margin-top:18px;border:1px solid rgba(10,20,40,0.03)}
+    .lead{color:var(--muted);margin:0 0 8px 0}
+
+    /* status row */
+    .status-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .label{font-weight:700}
+    .badge{
+      display:inline-block;padding:8px 12px;border-radius:999px;font-weight:700;color:#fff;font-size:.9rem;
+      box-shadow:0 6px 18px rgba(12,34,80,0.08);
+    }
+    .badge.green{background:var(--success)}
+    .badge.yellow{background:var(--warn)}
+    .badge.red{background:var(--danger)}
+    .badge.blue{background:var(--info)}
+
+    .btn{
+      display:inline-block;background:var(--accent);color:#fff;padding:8px 12px;border-radius:10px;text-decoration:none;font-weight:700;
+      box-shadow:0 8px 18px rgba(21,101,216,0.12);
+      border:0; cursor:pointer;
+    }
+
+    /* pretty pre (API raw output) */
+    pre{
+      background:var(--mono-bg); color:var(--mono-text); padding:14px;border-radius:10px;overflow:auto;font-family:Consolas,Menlo,Monaco,monospace;font-size:0.95rem;
+      margin:10px 0 0 0; border: 1px solid rgba(255,255,255,0.03);
+    }
+
+    /* links */
+    ul{margin:10px 0 0 20px}
+    a.link{color:rebeccapurple;font-weight:700}
+
+    /* small helper */
+    .muted{color:var(--muted)}
+
+    /* responsive */
+    @media(min-width:880px){
+      header{justify-content:space-between}
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <h1>Human Helper.AI</h1>
-      <div class="muted">— lightweight landing + backend status</div>
+      <div>
+        <h1>Human Helper.AI</h1>
+        <div class="sub">— lightweight landing + backend status</div>
+      </div>
+      <div class="muted" style="text-align:right">Deployed: GitHub Pages + Railway</div>
     </header>
 
     <div class="card" id="overview">
-      <p class="muted">This page shows the status of your backend and provides quick links.</p>
+      <p class="lead">This page shows the status of your backend and provides quick links.</p>
 
-      <div style="margin-top:12px;">
-        <strong>Backend health:</strong>
-        <span id="health" class="status checking">checking…</span>
-        <a class="btn" id="refresh">Refresh</a>
+      <div style="margin-top:8px" class="status-row">
+        <div style="min-width:170px">
+          <div class="label">Backend health:</div>
+          <!-- status badge changes color/text from JS -->
+          <div id="statusBadge" class="badge blue" title="status">Checking…</div>
+        </div>
+
+        <div style="margin-left:auto;display:flex;gap:10px;align-items:center">
+          <button id="refresh" class="btn" title="Re-check backend">Refresh</button>
+        </div>
       </div>
 
-      <div style="margin-top:12px;">
+      <div style="margin-top:16px">
         <strong>API response (raw):</strong>
         <pre id="apiraw">—</pre>
       </div>
@@ -59,51 +104,103 @@
     <div class="card" id="links">
       <strong>Links</strong>
       <ul>
-        <li>GitHub Pages: <a href="https://humanhelperai.github.io" target="_blank">humanhelperai.github.io</a></li>
-        <li>Railway app: <a href="https://web-production-e484.up.railway.app" target="_blank">Railway backend</a></li>
+        <li>GitHub Pages: <a class="link" href="https://humanhelperai.github.io" target="_blank" rel="noopener">humanhelperai.github.io</a></li>
+        <li>Railway app: <a class="link" href="https://web-production-e484.up.railway.app" target="_blank" rel="noopener">Railway backend</a></li>
       </ul>
     </div>
 
-    <footer>Deployed static site (GitHub Pages). Uses fetch to your Railway endpoint.</footer>
   </div>
 
 <script>
-  const RAILWAY_URL = "https://web-production-e484.up.railway.app";
+/*
+  Edit RAILWAY_URL below if you move the Railway app.
+  It will request ROOT (/) of your Railway app. If your health endpoint lives at /health, change "/"
+  to "/health" in the fetch too.
+*/
+const RAILWAY_URL = "https://web-production-e484.up.railway.app"; // <-- keep your railways url here
+const FETCH_PATH = "/"; // change to '/health' if your API exposes /health
 
-  async function checkHealth(){
-    const healthEl = document.getElementById('health');
-    const rawEl = document.getElementById('apiraw');
-    healthEl.textContent = 'checking…';
-    healthEl.className = 'status checking';
-    rawEl.textContent = '';
+const badge = document.getElementById('statusBadge');
+const raw = document.getElementById('apiraw');
+const refresh = document.getElementById('refresh');
 
-    try {
-      const res = await fetch(RAILWAY_URL + '/', { method: 'GET', credentials: 'omit', cache: 'no-cache' });
-      let txt;
-      try {
-        txt = await res.json();
-        rawEl.textContent = `${res.status} ${res.statusText}\n\n` + JSON.stringify(txt, null, 2);
-      } catch {
-        txt = await res.text();
-        rawEl.textContent = `${res.status} ${res.statusText}\n\n${txt}`;
-      }
+function setBadgeText(text, klass) {
+  badge.textContent = text;
+  badge.className = 'badge ' + klass;
+}
 
-      if (res.ok) {
-        healthEl.textContent = 'online';
-        healthEl.className = 'status online';
-      } else {
-        healthEl.textContent = 'error';
-        healthEl.className = 'status error';
-      }
-    } catch (err) {
-      healthEl.textContent = 'unreachable';
-      healthEl.className = 'status unreachable';
-      rawEl.textContent = String(err);
+/* Pretty print object or text into pre box */
+function showRaw(v) {
+  if (!v) { raw.textContent = '—'; return; }
+  try {
+    if (typeof v === 'object') {
+      raw.textContent = JSON.stringify(v, null, 2);
+    } else {
+      raw.textContent = String(v);
     }
+  } catch (e) {
+    raw.textContent = String(v);
   }
+}
 
-  document.getElementById('refresh').addEventListener('click', checkHealth);
+/* Main check function */
+async function checkHealth() {
+  setBadgeText('Checking…', 'blue');
+  showRaw('—');
+
+  try {
+    const res = await fetch(RAILWAY_URL + FETCH_PATH, {
+      method: 'GET',
+      mode: 'cors',
+      cache: 'no-cache',
+      credentials: 'omit',
+      headers: { 'Accept': 'application/json, text/plain, */*' },
+      // no timeout in fetch natively — Railway should respond quickly for health
+    });
+
+    // prefer JSON if available
+    let bodyText;
+    let parsed = null;
+    try {
+      parsed = await res.json();       // will throw if not JSON
+      bodyText = parsed;
+    } catch (je) {
+      // fallback to raw text
+      bodyText = await res.text();
+    }
+
+    // show raw content (JSON pretty or text)
+    showRaw(bodyText);
+
+    // set badge color/text based on status
+    if (res.ok) {
+      setBadgeText('Online', 'green');
+    } else {
+      // 4xx/5xx -> warn (yellow) or error (red) based on code
+      const statusClass = (res.status >= 500) ? 'red' : 'yellow';
+      setBadgeText(`Error ${res.status}`, statusClass);
+    }
+  } catch (err) {
+    // network / CORS / other exceptions
+    // Use red for unreachable errors (explicit request)
+    setBadgeText('Unreachable', 'red');
+    // show the exception message in the raw box
+    showRaw(String(err));
+  }
+}
+
+/* Quick initial check on load */
+document.addEventListener('DOMContentLoaded', () => {
   checkHealth();
+});
+
+/* refresh handler */
+refresh.addEventListener('click', (e) => {
+  e.preventDefault();
+  checkHealth();
+});
 </script>
 </body>
 </html>
+
+
