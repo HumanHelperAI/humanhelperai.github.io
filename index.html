@@ -12,16 +12,26 @@
     h1{margin:0;font-size:1.6rem;color:var(--accent)}
     .card{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 6px 22px rgba(20,30,50,.06);margin-top:16px}
     .muted{color:var(--muted);font-size:.95rem}
-    .btn{display:inline-block;background:var(--accent);color:#fff;padding:10px 14px;border-radius:8px;text-decoration:none}
-    .status {font-weight:600;margin-left:8px}
-   pre {
-  background:#111;
-  color:#e0e0e0;   /* light gray/white */
-  padding:12px;
-  border-radius:8px;
-  overflow:auto;
-  font-family: monospace;
-}
+    .btn{display:inline-block;background:var(--accent);color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:.9rem}
+    footer{margin-top:22px;text-align:center;color:var(--muted);font-size:.9rem}
+
+    /* API response box */
+    pre{background:#111;color:#0f0;padding:12px;border-radius:8px;overflow:auto;font-size:.9rem}
+
+    /* Status pill styles */
+    .status {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-left: 8px;
+      color: #fff;
+    }
+    .status.online { background: #0a8a3f; }     /* green */
+    .status.error { background: #c0392b; }      /* red */
+    .status.checking { background: #f39c12; }   /* yellow */
+    .status.unreachable { background: #2980b9; } /* blue */
   </style>
 </head>
 <body>
@@ -36,7 +46,7 @@
 
       <div style="margin-top:12px;">
         <strong>Backend health:</strong>
-        <span id="health" class="status muted">checking…</span>
+        <span id="health" class="status checking">checking…</span>
         <a class="btn" id="refresh">Refresh</a>
       </div>
 
@@ -56,14 +66,15 @@
 
     <footer>Deployed static site (GitHub Pages). Uses fetch to your Railway endpoint.</footer>
   </div>
-  
-   <script>
+
+<script>
   const RAILWAY_URL = "https://web-production-e484.up.railway.app";
 
   async function checkHealth(){
     const healthEl = document.getElementById('health');
     const rawEl = document.getElementById('apiraw');
     healthEl.textContent = 'checking…';
+    healthEl.className = 'status checking';
     rawEl.textContent = '';
 
     try {
@@ -79,14 +90,14 @@
 
       if (res.ok) {
         healthEl.textContent = 'online';
-        healthEl.style.color = '#0a8a3f';
+        healthEl.className = 'status online';
       } else {
         healthEl.textContent = 'error';
-        healthEl.style.color = '#c0392b';
+        healthEl.className = 'status error';
       }
     } catch (err) {
       healthEl.textContent = 'unreachable';
-      healthEl.style.color = '#c0392b';
+      healthEl.className = 'status unreachable';
       rawEl.textContent = String(err);
     }
   }
