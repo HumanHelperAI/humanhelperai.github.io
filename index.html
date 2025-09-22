@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Human Helper AI</title>
+  <title>Human Helper.AI</title>
   <style>
     :root{--bg:#f7fbff;--card:#fff;--accent:#0b63d1;--muted:#666}
     body{font-family:Inter,system-ui,Arial,sans-serif;background:var(--bg);margin:0;padding:20px;color:#111}
@@ -21,7 +21,7 @@
 <body>
   <div class="wrap">
     <header>
-      <h1>Human Helper AI</h1>
+      <h1>Human Helper.AI</h1>
       <div class="muted">— lightweight landing + backend status</div>
     </header>
 
@@ -62,7 +62,7 @@
     rawEl.textContent = '';
     try {
       // example: GET /health (adjust path if your app uses /health or /)
-      const res = await fetch(RAILWAY_URL + '/', { method: 'GET', cache: 'no-cache' });
+      const res = await fetch(API_URL + '/', { method: 'GET', credentials: 'omit', cache: 'no-cache' });
       const txt = await res.text();
       rawEl.textContent = `${res.status} ${res.statusText}\n\n${txt}`;
       if (res.ok) {
