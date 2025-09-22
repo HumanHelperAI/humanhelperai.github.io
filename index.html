@@ -14,12 +14,13 @@
     .muted{color:var(--muted);font-size:.95rem}
     .btn{display:inline-block;background:var(--accent);color:#fff;padding:10px 14px;border-radius:8px;text-decoration:none}
     .status {font-weight:600;margin-left:8px}
-    pre {
+   pre {
   background:#111;
-  color:#0f0;   /* bright green */
+  color:#e0e0e0;   /* light gray/white */
   padding:12px;
   border-radius:8px;
   overflow:auto;
+  font-family: monospace;
 }
   </style>
 </head>
@@ -55,27 +56,27 @@
 
     <footer>Deployed static site (GitHub Pages). Uses fetch to your Railway endpoint.</footer>
   </div>
-
-<script>
-  // CHANGE THIS to your live Railway base URL if different:
-   const res = await fetch(RAILWAY_URL + '/', { method: 'GET', credentials: 'omit', cache: 'no-cache' });
+  
+   <script>
+  const RAILWAY_URL = "https://web-production-e484.up.railway.app";
 
   async function checkHealth(){
     const healthEl = document.getElementById('health');
     const rawEl = document.getElementById('apiraw');
     healthEl.textContent = 'checking…';
     rawEl.textContent = '';
+
     try {
-      // example: GET /health (adjust path if your app uses /health or /)
       const res = await fetch(RAILWAY_URL + '/', { method: 'GET', credentials: 'omit', cache: 'no-cache' });
-     let txt;
-try {
-  txt = await res.json();
-  rawEl.textContent = `${res.status} ${res.statusText}\n\n` + JSON.stringify(txt, null, 2);
-} catch (e) {
-  txt = await res.text();
-  rawEl.textContent = `${res.status} ${res.statusText}\n\n${txt}`;
-}
+      let txt;
+      try {
+        txt = await res.json();
+        rawEl.textContent = `${res.status} ${res.statusText}\n\n` + JSON.stringify(txt, null, 2);
+      } catch {
+        txt = await res.text();
+        rawEl.textContent = `${res.status} ${res.statusText}\n\n${txt}`;
+      }
+
       if (res.ok) {
         healthEl.textContent = 'online';
         healthEl.style.color = '#0a8a3f';
