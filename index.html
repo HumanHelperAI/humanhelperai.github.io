@@ -1,4 +1,4 @@
-<!doctype html>
+<!doctyxype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -26,7 +26,6 @@
     .links a{color:rebeccapurple}
     pre{background:var(--code-bg);color:var(--code-color);padding:14px;border-radius:10px;overflow:auto;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace}
     footer{margin-top:22px;text-align:center;color:var(--muted);font-size:.9rem}
-    /* small responsive */
     @media (max-width:620px){
       .wrap{padding:12px}
       pre{font-size:14px}
@@ -74,14 +73,13 @@
   </div>
 
 <script>
-  // Your Railway URL (use the one you confirmed)
+  // YOUR RAILWAY URL - use the one you verified
   const API_URL = "https://web-production-e484.up.railway.app";
 
   const healthBadge = document.getElementById('healthBadge');
   const rawEl = document.getElementById('apiraw');
 
   function setBadge(stateText){
-    // colors: online (green), error (red), warning (yellow), unreachable (blue)
     const map = {
       online: {bg:'#0a8a3f', text:'ONLINE'},
       error: {bg:'#c0392b', text:'ERROR'},
@@ -98,7 +96,6 @@
     setBadge('checking');
     rawEl.textContent = '';
     try {
-      // fetch root (we confirmed root returns a stable 200 JSON)
       const res = await fetch(API_URL + '/', { method: 'GET', cache: 'no-cache', credentials: 'omit' });
       const contentType = res.headers.get('content-type') || '';
       let body;
@@ -118,17 +115,13 @@
         setBadge('warning');
       }
     } catch (err) {
-      // network / CORS / DNS errors land here
       rawEl.textContent = String(err);
       setBadge('unreachable');
     }
   }
 
   document.getElementById('refresh').addEventListener('click', checkHealth);
-  // initial check
   checkHealth();
-  // optional: poll every 45s
-  // setInterval(checkHealth, 45000);
 </script>
 </body>
 </html>
