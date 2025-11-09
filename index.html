@@ -4,208 +4,174 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Human Helper — API Demo</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg1:#151a2f; --bg2:#1c1a3a; --bg3:#1b2c4a;
-      --card:#ffffff16; --stroke:#ffffff1f; --muted:#aeb3c2; --txt:#ecf0ff;
-      --primary:#6cf3ff; --primary-2:#7b7bff; --accent:#ff6ec7; --ok:#21d19f; --warn:#ffd166; --err:#ff6b6b;
-      --shadow:0 15px 50px rgba(0,0,0,.35);
-      --radius:16px;
+      --glass: rgba(255,255,255,.08);
+      --glass-strong: rgba(255,255,255,.14);
+      --border: rgba(255,255,255,.18);
+      --txt: #e9eefc;
+      --muted: #9db0d5;
+      --ok: #47e5a3;
+      --warn:#ffd166;
+      --err:#ff6b6b;
+      --accent1:#8ec5fc;
+      --accent2:#e0c3fc;
+      --accent3:#ff9aeb;
+      --accent4:#9bffd8;
     }
     *{box-sizing:border-box}
+    html,body{height:100%}
     body{
-      margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      color:var(--txt); background:linear-gradient(130deg,var(--bg1),var(--bg2),var(--bg3));
-      min-height:100vh; overflow-x:hidden;
-      background-size:200% 200%; animation:bgmove 18s ease infinite;
+      margin:0; color:var(--txt); font:16px/1.45 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: linear-gradient(120deg,#0b1224,#0d1530,#0b1224) fixed;
+      background-size: 400% 400%;
+      animation:bg 18s ease infinite;
     }
-    @keyframes bgmove{0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%}}
-    .container{max-width:1000px;margin:32px auto;padding:0 16px}
-    header{
-      display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:20px;
-    }
-    .brand{
-      display:flex; align-items:center; gap:12px;
-    }
-    .logo{
-      width:40px;height:40px;border-radius:12px;
-      background: conic-gradient(from 210deg, var(--primary), var(--accent), var(--primary-2));
-      box-shadow: 0 8px 25px rgba(124,152,255,.35), inset 0 0 16px rgba(255,255,255,.35);
-    }
-    h1{font-size:clamp(20px,3.4vw,32px);margin:0;font-weight:800;letter-spacing:.2px}
-    .env{
-      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
-      background:var(--card); border:1px solid var(--stroke); border-radius:12px; padding:8px 12px;
-      box-shadow:var(--shadow); backdrop-filter: blur(8px);
-    }
-    .env small{color:var(--muted)}
-    select, input, button{
-      font:inherit; color:var(--txt);
-      background:#00000020; border:1px solid var(--stroke); border-radius:12px;
-      padding:10px 12px; outline:none;
-    }
-    select:focus, input:focus{border-color:var(--primary)}
-    button{
-      background: linear-gradient(135deg, var(--primary), var(--primary-2));
-      color:#0b0f1c; font-weight:800; letter-spacing:.3px; border:none; cursor:pointer;
-      box-shadow:0 8px 24px rgba(108,243,255,.35); transition: transform .06s ease, filter .2s ease;
-    }
-    button.ghost{
-      background:transparent; color:var(--txt); border:1px solid var(--stroke);
-      box-shadow:none;
-    }
-    button.secondary{
-      background: linear-gradient(135deg, var(--accent), #ffa6d9);
-      color:#2a1020; box-shadow:0 8px 24px rgba(255,110,199,.35);
-    }
-    button:hover{filter:saturate(1.1) brightness(1.02)}
-    button:active{transform:translateY(1px)}
-    .grid{
-      display:grid; grid-template-columns:1fr; gap:16px;
-    }
-    @media (min-width:800px){ .grid{grid-template-columns:1fr 1fr} }
+    @keyframes bg{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+    .wrap{max-width:980px;margin:28px auto;padding:0 14px}
+    h1{margin:0 0 18px;font-weight:800;letter-spacing:.5px}
+    .pill{display:inline-flex;gap:10px;align-items:center}
     .card{
-      background:var(--card); border:1px solid var(--stroke); border-radius:var(--radius); padding:16px;
-      box-shadow:var(--shadow); backdrop-filter: blur(10px);
+      background:var(--glass); border:1px solid var(--border); border-radius:18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.06);
+      padding:18px; margin:14px 0;
     }
-    .title{font-weight:800; letter-spacing:.3px; margin:4px 0 12px 0}
-    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
-    .row > *{flex:1}
-    .stack{display:flex; flex-direction:column; gap:10px}
-    .hint{color:var(--muted); font-size:12px}
-    .ok{color:var(--ok)} .err{color:var(--err)} .warn{color:var(--warn)}
-    .badge{
-      padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.3px;
-      background:#0000002a;border:1px solid var(--stroke);
+    .row{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+    @media (max-width:740px){.row{grid-template-columns:1fr}}
+    label{display:block;font-size:12px;color:var(--muted);margin:8px 2px}
+    input,select{
+      width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--border);
+      background:rgba(255,255,255,.06); color:var(--txt); outline:none;
     }
-    .console{
-      width:100%; min-height:180px; max-height:420px; overflow:auto;
-      background:#00000033; border:1px dashed var(--stroke); border-radius:12px; padding:12px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      color:#dff7ff;
+    input:focus,select:focus{box-shadow:0 0 0 3px rgba(142,197,252,.2)}
+    .btn{
+      width:100%; padding:12px 14px; border-radius:14px; border:0; cursor:pointer;
+      color:#0b1224; font-weight:800; letter-spacing:.2px; text-transform:capitalize;
+      background: linear-gradient(135deg,var(--accent1),var(--accent2));
+      box-shadow: 0 10px 20px rgba(0,0,0,.25);
+      transition: transform .04s ease, opacity .2s ease;
     }
-    .split{display:grid; grid-template-columns:1fr; gap:12px}
-    @media (min-width:720px){ .split{grid-template-columns:1fr 1fr} }
-    .footer-note{margin-top:14px;color:var(--muted);font-size:12px}
-    /* spinner */
-    .spinner{display:none; position:fixed; inset:0; background:rgba(6,10,22,.35); backdrop-filter: blur(4px);
-      place-items:center; z-index:50}
-    .spinner .dot{
-      width:14px;height:14px;border-radius:50%;
-      background: linear-gradient(180deg, var(--primary), var(--accent));
-      animation: bounce .9s ease-in-out infinite alternate;
-      box-shadow:0 0 20px var(--primary);
+    .btn:active{transform:translateY(1px)}
+    .btn--pink{background:linear-gradient(135deg,var(--accent3),var(--accent2))}
+    .btn--mint{background:linear-gradient(135deg,var(--accent4),var(--accent1))}
+    .btn--ghost{
+      background:transparent; color:var(--txt); border:1px solid var(--border);
     }
-    @keyframes bounce{to{transform: translateY(-12px) scale(1.05)}}
-    /* toasts */
-    .toasts{position:fixed; right:16px; bottom:16px; display:flex; flex-direction:column; gap:8px; z-index:60}
-    .toast{
-      background:#0b1124ea; color:var(--txt); border:1px solid var(--stroke); border-left:4px solid var(--primary);
-      border-radius:12px; padding:10px 12px; min-width:200px; box-shadow:var(--shadow)
+    pre{
+      background:rgba(0,0,0,.25); border:1px solid var(--border); border-radius:12px;
+      padding:12px; overflow:auto; min-height:120px; white-space:pre-wrap;
     }
-    .toast.err{border-left-color:var(--err)}
-    .label{font-size:12px; color:var(--muted); margin-bottom:6px}
-    .pill{display:inline-block;padding:6px 10px;border:1px solid var(--stroke);border-radius:999px;background:#00000024}
+    .topbar{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .select{display:flex; gap:10px; align-items:center}
+    small.hint{color:var(--muted); display:block; margin-top:6px}
+    .badge{padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.06); border:1px solid var(--border); font-size:12px}
+    #debug{font:12px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; opacity:.8; color:#9bd1ff; margin-top:6px}
+    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;background:#101826;color:#eaf3ff;border:1px solid var(--border);
+      padding:10px 14px;border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .2s, transform .2s}
+    .toast.show{opacity:1; transform:translate(-50%,-6px)}
   </style>
 </head>
 <body>
-  <div class="spinner" id="spinner"><div class="dot"></div></div>
-  <div class="toasts" id="toasts"></div>
-
-  <div class="container">
-    <header>
-      <div class="brand">
-        <div class="logo" aria-hidden="true"></div>
-        <h1>Human Helper — API Demo</h1>
-      </div>
-      <div class="env">
-        <small>Environment</small>
-        <select id="env">
-          <option value="https://api.humanhelperai.in">Production</option>
-          <option value="http://127.0.0.1:5000">Local (127.0.0.1)</option>
-          <option value="custom">Custom…</option>
-        </select>
-        <input id="base" placeholder="Custom API base…" style="min-width:230px" />
-        <button id="saveEnv" class="ghost">Save</button>
-      </div>
-    </header>
-
-    <div class="grid">
-      <section class="card stack">
-        <div class="title">Health</div>
-        <div class="row">
-          <button id="btnHealth" type="button" title="GET /health">Check /health</button>
-          <div class="badge"><span id="statusBadge">unknown</span></div>
-        </div>
-        <pre class="console" id="healthOut" aria-live="polite"></pre>
-      </section>
-
-      <section class="card stack">
-        <div class="title">Login</div>
-        <div class="row">
-          <input id="mobile" placeholder="Mobile (10 digits)" inputmode="numeric" />
-        </div>
-        <div class="row">
-          <button id="btnLogin" type="button">Login → get token</button>
-          <div class="pill" id="tokenState">No token</div>
-        </div>
-      </section>
+  <div class="wrap">
+    <div class="topbar">
+      <h1 class="pill">🪄 Human Helper — API Demo</h1>
     </div>
 
-    <section class="card stack" style="margin-top:16px">
-      <div class="title">Wallet</div>
-      <div class="split">
-        <div class="stack">
-          <div class="row">
-            <button id="btnBalance" type="button">Get Balance</button>
-            <button id="btnTxns" type="button" class="secondary">Get Transactions</button>
-          </div>
-          <div class="row">
-            <button id="btnEarns" type="button">Get Earnings</button>
-          </div>
+    <!-- Environment -->
+    <div class="card">
+      <div class="row">
+        <div>
+          <label>Environment</label>
+          <select id="envSelect">
+            <option value="prod">Production</option>
+            <option value="local">Local (127.0.0.1)</option>
+            <option value="custom">Custom…</option>
+          </select>
         </div>
-        <div class="stack">
-          <label class="label">Deposit (test)</label>
-          <div class="row">
-            <input id="depositAmt" value="20" />
-            <button id="btnDeposit" type="button" class="secondary">Deposit</button>
+        <div>
+          <label>Custom API base</label>
+          <div style="display:flex; gap:10px">
+            <input id="customBase" placeholder="https://api.example.com" />
+            <button id="saveBase" type="button" class="btn btn--ghost" style="width:auto;padding:10px 14px">Save</button>
+          </div>
+          <small class="hint">Your selection is saved in the browser.</small>
+        </div>
+      </div>
+      <div id="debug"></div>
+    </div>
+
+    <!-- Health -->
+    <div class="card">
+      <div class="row">
+        <button id="btnHealth" type="button" class="btn btn--mint">Check /health</button>
+        <div class="badge" id="healthState">unknown</div>
+      </div>
+      <pre id="outHealth"></pre>
+    </div>
+
+    <!-- Login -->
+    <div class="card">
+      <label>Mobile</label>
+      <input id="mobile" placeholder="9999999999" inputmode="numeric" />
+      <div class="row">
+        <button id="btnLogin" type="button" class="btn">Login → get token</button>
+        <div class="badge" id="tokenBadge">No token</div>
+      </div>
+    </div>
+
+    <!-- Wallet -->
+    <div class="card">
+      <h3 style="margin:0 0 6px">Wallet</h3>
+      <div class="row">
+        <button id="btnBalance"   type="button" class="btn btn--mint">Get Balance</button>
+        <button id="btnTxns"      type="button" class="btn btn--pink">Get Transactions</button>
+        <button id="btnEarns"     type="button" class="btn">Get Earnings</button>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <div>
+          <label>Deposit (test)</label>
+          <input id="depositAmt" value="20" />
+          <button id="btnDeposit" type="button" class="btn btn--pink" style="margin-top:8px">Deposit</button>
+        </div>
+        <div>
+          <label>Withdraw (min ₹100)</label>
+          <input id="withdrawAmt" value="100" />
+          <div style="display:flex; gap:10px; margin-top:8px">
+            <select id="provider" style="max-width:200px">
+              <option value="razorpay" selected>razorpay</option>
+              <option value="bank">bank</option>
+              <option value="upi">upi</option>
+            </select>
+            <button id="btnWithdraw" type="button" class="btn btn--mint">Withdraw</button>
           </div>
         </div>
       </div>
 
-      <div class="split">
-        <div class="stack">
-          <label class="label">Withdraw (min ₹100)</label>
-          <input id="withdrawAmt" value="100" />
-          <div class="row">
-            <select id="withdrawProv">
-              <option value="razorpay">razorpay</option>
-            </select>
-            <button id="btnWithdraw" type="button">Withdraw</button>
-          </div>
+      <div class="row" style="margin-top:10px">
+        <div>
+          <label>Earn content (demo) — content id</label>
+          <input id="contentId" value="video-123" />
         </div>
-        <div class="stack">
-          <label class="label">Earn content (demo)</label>
-          <input id="earnId" value="video-123" />
-          <div class="row">
-            <select id="earnType">
-              <option value="video">video</option>
+        <div>
+          <label>Type & Duration (sec)</label>
+          <div style="display:flex; gap:10px">
+            <select id="contentType" style="max-width:220px">
+              <option value="video" selected>video</option>
               <option value="short">short</option>
             </select>
-            <input id="earnDur" value="120" />
-            <button id="btnEarn" class="secondary">Send /earn</button>
+            <input id="duration" value="120" />
+            <button id="btnEarn" type="button" class="btn btn--pink" style="width:auto">Send /earn</button>
           </div>
         </div>
       </div>
 
-      <pre class="console" id="out"></pre>
-      <div class="footer-note">TIP: your token & selected API base are saved in your browser.</div>
-    </section>
+      <pre id="out"></pre>
+      <small class="hint">TIP: your token & selected API base are saved in your browser.</small>
+    </div>
   </div>
 
-  <script src="./app.js"></script>
+  <div id="toast" class="toast">Saved</div>
+  <script src="app.js" defer></script>
 </body>
 </html>
