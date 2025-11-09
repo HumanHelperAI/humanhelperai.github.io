@@ -254,3 +254,35 @@ initEnv();
 initMobilePrefill();
 bind();
 doHealth().catch(()=>{});
+
+/* --- debug & guard rails --- */
+function needTokenGuard() {
+  const t = localStorage.getItem('hh_token') || '';
+  if (!t) {
+    toast('Please login first to get a token', 'warn');
+    return false;
+  }
+  return true;
+}
+
+window.__hh_bindGuards = () => {
+  // Bind guards only if your handlers don't already check
+  const guarded = [
+    'btnBalance','btnTxns','btnEarns','btnDeposit','btnWithdraw','btnEarnSend'
+  ];
+  guarded.forEach(id=>{
+    const el = document.getElementById(id);
+    if (!el) return;
+    const orig = el.onclick || null;
+    el.onclick = async (ev) => {
+      if (!needTokenGuard()) return;
+      try { return orig && await orig(ev); }
+      catch (e) { console.error(e); toast(String(e), 'err'); }
+    };
+  });
+};
+
+// Ensure app.js actually loaded
+console.log('[HH] app.js loaded');
+toast('UI ready', 'ok');
+setTimeout(()=>{ window.__hh_bindGuards && window.__hh_bindGuards(); }, 100);

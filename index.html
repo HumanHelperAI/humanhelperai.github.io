@@ -137,7 +137,7 @@
       <section class="card stack">
         <div class="title">Health</div>
         <div class="row">
-          <button id="btnHealth" title="GET /health">Check /health</button>
+          <button id="btnHealth" type="button" title="GET /health">Check /health</button>
           <div class="badge"><span id="statusBadge">unknown</span></div>
         </div>
         <pre class="console" id="healthOut" aria-live="polite"></pre>
@@ -149,7 +149,7 @@
           <input id="mobile" placeholder="Mobile (10 digits)" inputmode="numeric" />
         </div>
         <div class="row">
-          <button id="btnLogin">Login → get token</button>
+          <button id="btnLogin" type="button">Login → get token</button>
           <div class="pill" id="tokenState">No token</div>
         </div>
       </section>
@@ -160,18 +160,18 @@
       <div class="split">
         <div class="stack">
           <div class="row">
-            <button id="btnBalance">Get Balance</button>
-            <button id="btnTxns" class="secondary">Get Transactions</button>
+            <button id="btnBalance" type="button">Get Balance</button>
+            <button id="btnTxns" type="button" class="secondary">Get Transactions</button>
           </div>
           <div class="row">
-            <button id="btnEarns">Get Earnings</button>
+            <button id="btnEarns" type="button">Get Earnings</button>
           </div>
         </div>
         <div class="stack">
           <label class="label">Deposit (test)</label>
           <div class="row">
             <input id="depositAmt" value="20" />
-            <button id="btnDeposit" class="secondary">Deposit</button>
+            <button id="btnDeposit" type="button" class="secondary">Deposit</button>
           </div>
         </div>
       </div>
@@ -184,7 +184,7 @@
             <select id="withdrawProv">
               <option value="razorpay">razorpay</option>
             </select>
-            <button id="btnWithdraw">Withdraw</button>
+            <button id="btnWithdraw" type="button">Withdraw</button>
           </div>
         </div>
         <div class="stack">
