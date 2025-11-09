@@ -1,220 +1,139 @@
-// ===== helpers =====
+/* ---------- tiny utils ---------- */
 const $ = (id) => document.getElementById(id);
+const badge = (id, t) => { const el = $(id); if (el) el.textContent = t; };
+const setJSON = (id, data) => { const el = $(id); if (el) el.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2); };
+function toast(msg){ const t=$('toast'); if(!t) return; t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800); }
+function debug(msg){ console.log(msg); const d=$('debug'); if(d) d.textContent=`[${new Date().toLocaleTimeString()}] ${msg}`; }
 
-function toast(msg) {
-  const t = $('toast');
-  if (!t) return;
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(()=> t.classList.remove('show'), 1800);
-}
+/* global error catcher -> show on screen */
+window.addEventListener('error', e => { debug(`JS error: ${e.message}`); toast('Script error'); });
+window.addEventListener('unhandledrejection', e => { debug(`Promise error: ${e.reason}`); toast('Request error'); });
 
-function debug(msg) {
-  console.log(msg);
-  const d = $('debug');
-  if (d) d.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+/* ---------- environment ---------- */
+const DEFAULTS = { prod:'https://api.humanhelperai.in', local:'http://127.0.0.1:5000' };
+const getMode = () => localStorage.getItem('ENV_MODE') || 'prod';
+function getBase(){ const m=getMode(); return m==='custom' ? (localStorage.getItem('API_BASE') || DEFAULTS.prod) : (DEFAULTS[m] || DEFAULTS.prod); }
+function paintEnv(){
+  $('envSelect').value=getMode();
+  $('customBase').value=getBase();
+  debug(`ENV=${getMode()} BASE=${getBase()}`);
 }
+function saveEnv(mode){ localStorage.setItem('ENV_MODE', mode); paintEnv(); toast('Environment saved'); }
+function saveCustom(){
+  const v=($('customBase').value||'').trim();
+  if(!/^https?:\/\//.test(v)) return toast('Use full URL incl. https://');
+  localStorage.setItem('API_BASE', v); localStorage.setItem('ENV_MODE','custom'); paintEnv(); toast('Base saved');
+}
+function setTokenBadge(){ badge('tokenBadge', localStorage.getItem('token') ? 'Token set ✅' : 'No token'); }
 
-function setJSON(whereId, obj) {
-  const el = $(whereId);
-  if (el) el.textContent = JSON.stringify(obj, null, 2);
-}
-
-// ===== environment / base URL =====
-const DEFAULTS = {
-  prod: 'https://api.humanhelperai.in',
-  local: 'http://127.0.0.1:5000'
-};
-function getBase() {
-  const mode = localStorage.getItem('ENV_MODE') || 'prod';
-  if (mode === 'custom') return localStorage.getItem('API_BASE') || DEFAULTS.prod;
-  return DEFAULTS[mode] || DEFAULTS.prod;
-}
-function applyEnvUI() {
-  const mode = localStorage.getItem('ENV_MODE') || 'prod';
-  const sel = $('envSelect');
-  const inp = $('customBase');
-  $('envSelect').value = mode;
-  const base = getBase();
-  inp.value = base;
-  debug(`ENV=${mode} BASE=${base}`);
-}
-function saveEnv(mode) {
-  localStorage.setItem('ENV_MODE', mode);
-  applyEnvUI();
-  toast('Environment saved');
-}
-function saveCustomBase() {
-  const url = ($('customBase').value || '').trim();
-  if (!/^https?:\/\//.test(url)) { toast('Enter full URL incl. https://'); return; }
-  localStorage.setItem('API_BASE', url);
-  localStorage.setItem('ENV_MODE', 'custom');
-  applyEnvUI();
-  toast('Base URL saved');
+/* ---------- safe fetch that never leaves UI blank ---------- */
+async function safeFetch(url, opts, outId){
+  setJSON(outId, 'loading …');
+  try{
+    const res = await fetch(url, opts);
+    const ct = res.headers.get('content-type') || '';
+    let body;
+    if (ct.includes('application/json')) {
+      body = await res.json();
+    } else {
+      const txt = await res.text();
+      try { body = JSON.parse(txt); } catch { body = txt || `(status ${res.status})`; }
+    }
+    setJSON(outId, body);
+    return { ok: res.ok, body };
+  }catch(err){
+    const msg = String(err && err.message || err);
+    setJSON(outId, { error: msg });
+    debug(`fetch fail: ${msg}`);
+    return { ok:false, body:{error:msg} };
+  }
 }
 
-// ===== token badge =====
-function setTokenBadge() {
-  const b = $('tokenBadge');
-  const t = localStorage.getItem('token');
-  b.textContent = t ? 'Token set ✅' : 'No token';
-}
-
-// ===== main wiring =====
+/* ---------- wire UI ---------- */
 document.addEventListener('DOMContentLoaded', () => {
-  applyEnvUI();
-  setTokenBadge();
-  debug('DOM ready; wiring handlers…');
+  paintEnv(); setTokenBadge(); debug('DOM ready; handlers wiring…');
 
-  // env controls
-  $('envSelect').addEventListener('change', (e) => saveEnv(e.target.value));
-  $('saveBase').addEventListener('click', (e) => { e.preventDefault(); saveCustomBase(); });
+  $('envSelect').addEventListener('change', e => saveEnv(e.target.value));
+  $('saveBase').addEventListener('click', e => { e.preventDefault(); saveCustom(); });
 
-  // HEALTH
+  // Health
   $('btnHealth').addEventListener('click', async (e) => {
     e.preventDefault();
-    const base = getBase();
-    $('healthState').textContent = 'checking…';
-    try{
-      const r = await fetch(`${base}/health`, { method: 'GET' });
-      const j = await r.json();
-      setJSON('outHealth', j);
-      $('healthState').textContent = j.status || 'ok';
-      toast('Health ✓');
-    }catch(err){
-      $('healthState').textContent = 'error';
-      setJSON('outHealth', {error:String(err)});
-      toast('Health failed');
-    }
+    badge('healthState','checking…');
+    const { body } = await safeFetch(`${getBase()}/health`, { method:'GET' }, 'outHealth');
+    badge('healthState', body && body.status ? body.status : 'ok');
+    toast('Health ✓');
   });
 
-  // LOGIN (demo stub – your API may differ)
+  // Login (demo: saves token if present)
   $('btnLogin').addEventListener('click', async (e) => {
     e.preventDefault();
-    const base = getBase();
-    const mobile = ($('mobile').value || '').trim();
-    if (!mobile) { toast('Enter mobile'); return; }
-    try{
-      const r = await fetch(`${base}/login`, {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ mobile })
-      });
-      const j = await r.json();
-      setJSON('out', j);
-      if (j.token) {
-        localStorage.setItem('token', j.token);
-        setTokenBadge();
-        toast('Token set ✅');
-      } else {
-        toast('Login done');
-      }
-    }catch(err){
-      setJSON('out', {error:String(err)});
-      toast('Login failed');
-    }
+    const mobile = ($('mobile').value||'').trim();
+    if(!mobile) return toast('Enter mobile');
+    const { body } = await safeFetch(`${getBase()}/login`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ mobile })
+    }, 'out');
+    if (body && body.token) { localStorage.setItem('token', body.token); setTokenBadge(); toast('Token set'); }
   });
 
-  // BALANCE
-  $('btnBalance').addEventListener('click', async (e) => {
+  // Balance
+  $('btnBalance').addEventListener('click', (e) => {
     e.preventDefault();
-    const base = getBase();
-    const mobile = ($('mobile').value || '').trim();
-    try{
-      const r = await fetch(`${base}/balance/${mobile}`);
-      setJSON('out', await r.json());
-    }catch(err){
-      setJSON('out', {error:String(err)});
-    }
+    const mobile = ($('mobile').value||'').trim();
+    safeFetch(`${getBase()}/balance/${mobile}`, { method:'GET' }, 'out');
   });
 
-  // TRANSACTIONS
-  $('btnTxns').addEventListener('click', async (e) => {
+  // Transactions
+  $('btnTxns').addEventListener('click', (e) => {
     e.preventDefault();
-    const base = getBase();
-    const mobile = ($('mobile').value || '').trim();
-    try{
-      const r = await fetch(`${base}/transactions/${mobile}`);
-      setJSON('out', await r.json());
-    }catch(err){
-      setJSON('out', {error:String(err)});
-    }
+    const mobile = ($('mobile').value||'').trim();
+    safeFetch(`${getBase()}/transactions/${mobile}`, { method:'GET' }, 'out');
   });
 
-  // EARNINGS
-  $('btnEarns').addEventListener('click', async (e) => {
+  // Earnings
+  $('btnEarns').addEventListener('click', (e) => {
     e.preventDefault();
-    const base = getBase();
-    const mobile = ($('mobile').value || '').trim();
-    const token = localStorage.getItem('token') || '';
-    try{
-      const r = await fetch(`${base}/earnings/${mobile}`, {
-        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-      });
-      setJSON('out', await r.json());
-    }catch(err){
-      setJSON('out', {error:String(err)});
-    }
+    const mobile = ($('mobile').value||'').trim();
+    const headers = {};
+    const t=localStorage.getItem('token'); if(t) headers['Authorization']=`Bearer ${t}`;
+    safeFetch(`${getBase()}/earnings/${mobile}`, { method:'GET', headers }, 'out');
   });
 
-  // DEPOSIT
-  $('btnDeposit').addEventListener('click', async (e) => {
+  // Deposit
+  $('btnDeposit').addEventListener('click', (e) => {
     e.preventDefault();
-    const base = getBase();
-    const mobile = ($('mobile').value || '').trim();
-    const amount = parseFloat($('depositAmt').value) || 0;
-    try{
-      const r = await fetch(`${base}/deposit`, {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ mobile, amount })
-      });
-      setJSON('out', await r.json());
-      toast('Deposit sent');
-    }catch(err){
-      setJSON('out', {error:String(err)});
-    }
+    const mobile = ($('mobile').value||'').trim();
+    const amount = parseFloat($('depositAmt').value)||0;
+    safeFetch(`${getBase()}/deposit`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ mobile, amount })
+    }, 'out').then(()=>toast('Deposit sent'));
   });
 
-  // WITHDRAW
-  $('btnWithdraw').addEventListener('click', async (e) => {
+  // Withdraw
+  $('btnWithdraw').addEventListener('click', (e) => {
     e.preventDefault();
-    const base = getBase();
-    const mobile = ($('mobile').value || '').trim();
-    const amount = parseFloat($('withdrawAmt').value) || 0;
+    const mobile = ($('mobile').value||'').trim();
+    const amount = parseFloat($('withdrawAmt').value)||0;
     const provider = $('provider').value;
-    try{
-      const r = await fetch(`${base}/withdraw`, {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ mobile, amount, provider })
-      });
-      setJSON('out', await r.json());
-      toast('Withdraw sent');
-    }catch(err){
-      setJSON('out', {error:String(err)});
-    }
+    safeFetch(`${getBase()}/withdraw`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ mobile, amount, provider })
+    }, 'out').then(()=>toast('Withdraw sent'));
   });
 
-  // EARN
-  $('btnEarn').addEventListener('click', async (e) => {
+  // Earn
+  $('btnEarn').addEventListener('click', (e) => {
     e.preventDefault();
-    const base = getBase();
-    const mobile = ($('mobile').value || '').trim();
-    const video_id = ($('contentId').value || '').trim();
+    const mobile = ($('mobile').value||'').trim();
+    const video_id = ($('contentId').value||'').trim();
     const content_type = $('contentType').value;
-    const duration = parseInt($('duration').value, 10) || 0;
-    try{
-      const r = await fetch(`${base}/earn`, {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ mobile, video_id, content_type, duration })
-      });
-      setJSON('out', await r.json());
-      toast('/earn sent');
-    }catch(err){
-      setJSON('out', {error:String(err)});
-    }
+    const duration = parseInt(($('duration').value||'0'),10)||0;
+    safeFetch(`${getBase()}/earn`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ mobile, video_id, content_type, duration })
+    }, 'out').then(()=>toast('/earn sent'));
   });
 
   debug('Handlers wired.');

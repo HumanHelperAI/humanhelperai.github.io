@@ -1,83 +1,48 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Human Helper — API Demo</title>
   <style>
     :root{
       --glass: rgba(255,255,255,.08);
-      --glass-strong: rgba(255,255,255,.14);
       --border: rgba(255,255,255,.18);
-      --txt: #e9eefc;
-      --muted: #9db0d5;
-      --ok: #47e5a3;
-      --warn:#ffd166;
-      --err:#ff6b6b;
-      --accent1:#8ec5fc;
-      --accent2:#e0c3fc;
-      --accent3:#ff9aeb;
-      --accent4:#9bffd8;
+      --txt:#e9eefc; --muted:#9db0d5;
+      --a1:#8ec5fc; --a2:#e0c3fc; --a3:#ff9aeb; --a4:#9bffd8;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
+    *{box-sizing:border-box} html,body{height:100%}
     body{
-      margin:0; color:var(--txt); font:16px/1.45 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: linear-gradient(120deg,#0b1224,#0d1530,#0b1224) fixed;
-      background-size: 400% 400%;
+      margin:0;color:var(--txt);font:16px/1.45 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:linear-gradient(120deg,#0b1224,#0d1530,#0b1224) fixed;background-size:400% 400%;
       animation:bg 18s ease infinite;
     }
     @keyframes bg{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
     .wrap{max-width:980px;margin:28px auto;padding:0 14px}
     h1{margin:0 0 18px;font-weight:800;letter-spacing:.5px}
-    .pill{display:inline-flex;gap:10px;align-items:center}
-    .card{
-      background:var(--glass); border:1px solid var(--border); border-radius:18px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.06);
-      padding:18px; margin:14px 0;
-    }
-    .row{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+    .card{background:var(--glass);border:1px solid var(--border);border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 10px 30px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.06)}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
     @media (max-width:740px){.row{grid-template-columns:1fr}}
     label{display:block;font-size:12px;color:var(--muted);margin:8px 2px}
-    input,select{
-      width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--border);
-      background:rgba(255,255,255,.06); color:var(--txt); outline:none;
-    }
+    input,select{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.06);color:var(--txt);outline:none}
     input:focus,select:focus{box-shadow:0 0 0 3px rgba(142,197,252,.2)}
-    .btn{
-      width:100%; padding:12px 14px; border-radius:14px; border:0; cursor:pointer;
-      color:#0b1224; font-weight:800; letter-spacing:.2px; text-transform:capitalize;
-      background: linear-gradient(135deg,var(--accent1),var(--accent2));
-      box-shadow: 0 10px 20px rgba(0,0,0,.25);
-      transition: transform .04s ease, opacity .2s ease;
-    }
-    .btn:active{transform:translateY(1px)}
-    .btn--pink{background:linear-gradient(135deg,var(--accent3),var(--accent2))}
-    .btn--mint{background:linear-gradient(135deg,var(--accent4),var(--accent1))}
-    .btn--ghost{
-      background:transparent; color:var(--txt); border:1px solid var(--border);
-    }
-    pre{
-      background:rgba(0,0,0,.25); border:1px solid var(--border); border-radius:12px;
-      padding:12px; overflow:auto; min-height:120px; white-space:pre-wrap;
-    }
-    .topbar{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-    .select{display:flex; gap:10px; align-items:center}
-    small.hint{color:var(--muted); display:block; margin-top:6px}
-    .badge{padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.06); border:1px solid var(--border); font-size:12px}
-    #debug{font:12px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; opacity:.8; color:#9bd1ff; margin-top:6px}
+    .btn{width:100%;padding:12px 14px;border-radius:14px;border:0;cursor:pointer;color:#0b1224;font-weight:800;letter-spacing:.2px;
+         background:linear-gradient(135deg,var(--a1),var(--a2));box-shadow:0 10px 20px rgba(0,0,0,.25)}
+    .btn--pink{background:linear-gradient(135deg,var(--a3),var(--a2))} .btn--mint{background:linear-gradient(135deg,var(--a4),var(--a1))}
+    .btn--ghost{background:transparent;color:var(--txt);border:1px solid var(--border);width:auto}
+    pre{background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:12px;padding:12px;min-height:120px;white-space:pre-wrap}
+    .badge{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--border);font-size:12px}
+    #debug{font:12px ui-monospace,Menlo,Consolas,monospace;opacity:.85;color:#9bd1ff;margin-top:6px}
     .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:20px;background:#101826;color:#eaf3ff;border:1px solid var(--border);
-      padding:10px 14px;border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .2s, transform .2s}
-    .toast.show{opacity:1; transform:translate(-50%,-6px)}
+           padding:10px 14px;border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+    .toast.show{opacity:1;transform:translate(-50%,-6px)}
+    small.hint{color:var(--muted);display:block;margin-top:6px}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="topbar">
-      <h1 class="pill">🪄 Human Helper — API Demo</h1>
-    </div>
+    <h1>🪄 Human Helper — API Demo</h1>
 
-    <!-- Environment -->
     <div class="card">
       <div class="row">
         <div>
@@ -90,17 +55,16 @@
         </div>
         <div>
           <label>Custom API base</label>
-          <div style="display:flex; gap:10px">
-            <input id="customBase" placeholder="https://api.example.com" />
-            <button id="saveBase" type="button" class="btn btn--ghost" style="width:auto;padding:10px 14px">Save</button>
+          <div style="display:flex;gap:10px">
+            <input id="customBase" placeholder="https://api.example.com"/>
+            <button id="saveBase" type="button" class="btn btn--ghost">Save</button>
           </div>
-          <small class="hint">Your selection is saved in the browser.</small>
+          <small class="hint">Saved in this browser.</small>
         </div>
       </div>
       <div id="debug"></div>
     </div>
 
-    <!-- Health -->
     <div class="card">
       <div class="row">
         <button id="btnHealth" type="button" class="btn btn--mint">Check /health</button>
@@ -109,35 +73,33 @@
       <pre id="outHealth"></pre>
     </div>
 
-    <!-- Login -->
     <div class="card">
       <label>Mobile</label>
-      <input id="mobile" placeholder="9999999999" inputmode="numeric" />
+      <input id="mobile" placeholder="9999999999" inputmode="numeric"/>
       <div class="row">
         <button id="btnLogin" type="button" class="btn">Login → get token</button>
         <div class="badge" id="tokenBadge">No token</div>
       </div>
     </div>
 
-    <!-- Wallet -->
     <div class="card">
       <h3 style="margin:0 0 6px">Wallet</h3>
       <div class="row">
-        <button id="btnBalance"   type="button" class="btn btn--mint">Get Balance</button>
-        <button id="btnTxns"      type="button" class="btn btn--pink">Get Transactions</button>
-        <button id="btnEarns"     type="button" class="btn">Get Earnings</button>
+        <button id="btnBalance" type="button" class="btn btn--mint">Get Balance</button>
+        <button id="btnTxns"    type="button" class="btn btn--pink">Get Transactions</button>
+        <button id="btnEarns"   type="button" class="btn">Get Earnings</button>
       </div>
 
       <div class="row" style="margin-top:10px">
         <div>
           <label>Deposit (test)</label>
-          <input id="depositAmt" value="20" />
+          <input id="depositAmt" value="20"/>
           <button id="btnDeposit" type="button" class="btn btn--pink" style="margin-top:8px">Deposit</button>
         </div>
         <div>
           <label>Withdraw (min ₹100)</label>
-          <input id="withdrawAmt" value="100" />
-          <div style="display:flex; gap:10px; margin-top:8px">
+          <input id="withdrawAmt" value="100"/>
+          <div style="display:flex;gap:10px;margin-top:8px">
             <select id="provider" style="max-width:200px">
               <option value="razorpay" selected>razorpay</option>
               <option value="bank">bank</option>
@@ -151,23 +113,23 @@
       <div class="row" style="margin-top:10px">
         <div>
           <label>Earn content (demo) — content id</label>
-          <input id="contentId" value="video-123" />
+          <input id="contentId" value="video-123"/>
         </div>
         <div>
           <label>Type & Duration (sec)</label>
-          <div style="display:flex; gap:10px">
+          <div style="display:flex;gap:10px">
             <select id="contentType" style="max-width:220px">
               <option value="video" selected>video</option>
               <option value="short">short</option>
             </select>
-            <input id="duration" value="120" />
+            <input id="duration" value="120"/>
             <button id="btnEarn" type="button" class="btn btn--pink" style="width:auto">Send /earn</button>
           </div>
         </div>
       </div>
 
       <pre id="out"></pre>
-      <small class="hint">TIP: your token & selected API base are saved in your browser.</small>
+      <small class="hint">TIP: your token & API base live in localStorage.</small>
     </div>
   </div>
 
