@@ -1,63 +1,81 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Human Helper.AI — API Test</title>
+  <title>Human Helper — Demo</title>
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif;max-width:720px;margin:40px auto;padding:0 16px;line-height:1.5}
-    button{padding:10px 16px;border:0;border-radius:10px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.1)}
-    pre{background:#f6f8fa;padding:12px;border-radius:10px;overflow:auto}
-    .ok{color:#0a7}
-    .err{color:#c00}
+    body { font-family: system-ui, sans-serif; margin: 16px; max-width: 800px; }
+    .card { border: 1px solid #ddd; border-radius: 10px; padding: 14px; margin: 10px 0; }
+    label { display:block; margin-top:8px; font-size:14px; }
+    input, select, button { padding:10px; margin-top:6px; width:100%; box-sizing:border-box; }
+    button { cursor:pointer; }
+    .row { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    pre { background:#f7f7f7; padding:10px; overflow:auto; border-radius:8px; }
+    .ok { color: #0a7; }
+    .err { color: #c00; }
   </style>
 </head>
 <body>
-  <h1>Human Helper.AI</h1>
-  <p>API base: <code id="base">https://api.humanhelperai.in</code></p>
+  <h1>Human Helper — API Demo</h1>
 
-  <h2>Health</h2>
-  <button onclick="ping()">GET / (root)</button>
-  <pre id="out1">waiting…</pre>
+  <div class="card" id="health">
+    <h3>Health</h3>
+    <button id="btnHealth">Check /health</button>
+    <div id="healthOut"></div>
+  </div>
 
-  <h2>Echo</h2>
-  <button onclick="echo()">POST /echo</button>
-  <pre id="out2">waiting…</pre>
+  <div class="card" id="auth">
+    <h3>Login</h3>
+    <label>Mobile</label>
+    <input id="mobile" placeholder="9999999999" />
+    <button id="btnLogin">Login → get token</button>
+    <div id="authOut"></div>
+  </div>
 
-  <script>
-    const base = document.getElementById('base').textContent;
+  <div class="card" id="wallet">
+    <h3>Wallet</h3>
+    <div class="row">
+      <div>
+        <button id="btnBalance">Get Balance</button>
+      </div>
+      <div>
+        <button id="btnTxns">Get Transactions</button>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <button id="btnEarnings">Get Earnings</button>
+      </div>
+      <div>
+        <label>Deposit (test)</label>
+        <input id="depAmt" type="number" value="20" />
+        <button id="btnDeposit">Deposit</button>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Withdraw (min ₹100)</label>
+        <input id="wdAmt" type="number" value="100" />
+        <select id="wdProv">
+          <option value="razorpay">razorpay</option>
+        </select>
+        <button id="btnWithdraw">Withdraw</button>
+      </div>
+      <div>
+        <label>Earn content (demo)</label>
+        <input id="vidId" placeholder="video-123" />
+        <select id="ctype">
+          <option value="video">video</option>
+          <option value="short">short</option>
+        </select>
+        <input id="dur" type="number" value="120" />
+        <button id="btnEarn">Send /earn</button>
+      </div>
+    </div>
+    <pre id="walletOut"></pre>
+  </div>
 
-    async function ping(){
-      const out = document.getElementById('out1');
-      out.textContent = 'loading…';
-      try{
-        const r = await fetch(base + '/', { method:'GET' });
-        const j = await r.json();
-        out.textContent = JSON.stringify(j,null,2);
-        out.className = r.ok ? 'ok' : 'err';
-      }catch(e){
-        out.textContent = String(e);
-        out.className = 'err';
-      }
-    }
-
-    async function echo(){
-      const out = document.getElementById('out2');
-      out.textContent = 'loading…';
-      try{
-        const r = await fetch(base + '/echo', {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ hello:'world' })
-        });
-        const j = await r.json();
-        out.textContent = JSON.stringify(j,null,2);
-        out.className = r.ok ? 'ok' : 'err';
-      }catch(e){
-        out.textContent = String(e);
-        out.className = 'err';
-      }
-    }
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
