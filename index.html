@@ -3,79 +3,209 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Human Helper — Demo</title>
+  <title>Human Helper — API Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    body { font-family: system-ui, sans-serif; margin: 16px; max-width: 800px; }
-    .card { border: 1px solid #ddd; border-radius: 10px; padding: 14px; margin: 10px 0; }
-    label { display:block; margin-top:8px; font-size:14px; }
-    input, select, button { padding:10px; margin-top:6px; width:100%; box-sizing:border-box; }
-    button { cursor:pointer; }
-    .row { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    pre { background:#f7f7f7; padding:10px; overflow:auto; border-radius:8px; }
-    .ok { color: #0a7; }
-    .err { color: #c00; }
+    :root{
+      --bg1:#151a2f; --bg2:#1c1a3a; --bg3:#1b2c4a;
+      --card:#ffffff16; --stroke:#ffffff1f; --muted:#aeb3c2; --txt:#ecf0ff;
+      --primary:#6cf3ff; --primary-2:#7b7bff; --accent:#ff6ec7; --ok:#21d19f; --warn:#ffd166; --err:#ff6b6b;
+      --shadow:0 15px 50px rgba(0,0,0,.35);
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color:var(--txt); background:linear-gradient(130deg,var(--bg1),var(--bg2),var(--bg3));
+      min-height:100vh; overflow-x:hidden;
+      background-size:200% 200%; animation:bgmove 18s ease infinite;
+    }
+    @keyframes bgmove{0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%}}
+    .container{max-width:1000px;margin:32px auto;padding:0 16px}
+    header{
+      display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:20px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px;
+    }
+    .logo{
+      width:40px;height:40px;border-radius:12px;
+      background: conic-gradient(from 210deg, var(--primary), var(--accent), var(--primary-2));
+      box-shadow: 0 8px 25px rgba(124,152,255,.35), inset 0 0 16px rgba(255,255,255,.35);
+    }
+    h1{font-size:clamp(20px,3.4vw,32px);margin:0;font-weight:800;letter-spacing:.2px}
+    .env{
+      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+      background:var(--card); border:1px solid var(--stroke); border-radius:12px; padding:8px 12px;
+      box-shadow:var(--shadow); backdrop-filter: blur(8px);
+    }
+    .env small{color:var(--muted)}
+    select, input, button{
+      font:inherit; color:var(--txt);
+      background:#00000020; border:1px solid var(--stroke); border-radius:12px;
+      padding:10px 12px; outline:none;
+    }
+    select:focus, input:focus{border-color:var(--primary)}
+    button{
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      color:#0b0f1c; font-weight:800; letter-spacing:.3px; border:none; cursor:pointer;
+      box-shadow:0 8px 24px rgba(108,243,255,.35); transition: transform .06s ease, filter .2s ease;
+    }
+    button.ghost{
+      background:transparent; color:var(--txt); border:1px solid var(--stroke);
+      box-shadow:none;
+    }
+    button.secondary{
+      background: linear-gradient(135deg, var(--accent), #ffa6d9);
+      color:#2a1020; box-shadow:0 8px 24px rgba(255,110,199,.35);
+    }
+    button:hover{filter:saturate(1.1) brightness(1.02)}
+    button:active{transform:translateY(1px)}
+    .grid{
+      display:grid; grid-template-columns:1fr; gap:16px;
+    }
+    @media (min-width:800px){ .grid{grid-template-columns:1fr 1fr} }
+    .card{
+      background:var(--card); border:1px solid var(--stroke); border-radius:var(--radius); padding:16px;
+      box-shadow:var(--shadow); backdrop-filter: blur(10px);
+    }
+    .title{font-weight:800; letter-spacing:.3px; margin:4px 0 12px 0}
+    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+    .row > *{flex:1}
+    .stack{display:flex; flex-direction:column; gap:10px}
+    .hint{color:var(--muted); font-size:12px}
+    .ok{color:var(--ok)} .err{color:var(--err)} .warn{color:var(--warn)}
+    .badge{
+      padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.3px;
+      background:#0000002a;border:1px solid var(--stroke);
+    }
+    .console{
+      width:100%; min-height:180px; max-height:420px; overflow:auto;
+      background:#00000033; border:1px dashed var(--stroke); border-radius:12px; padding:12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      color:#dff7ff;
+    }
+    .split{display:grid; grid-template-columns:1fr; gap:12px}
+    @media (min-width:720px){ .split{grid-template-columns:1fr 1fr} }
+    .footer-note{margin-top:14px;color:var(--muted);font-size:12px}
+    /* spinner */
+    .spinner{display:none; position:fixed; inset:0; background:rgba(6,10,22,.35); backdrop-filter: blur(4px);
+      place-items:center; z-index:50}
+    .spinner .dot{
+      width:14px;height:14px;border-radius:50%;
+      background: linear-gradient(180deg, var(--primary), var(--accent));
+      animation: bounce .9s ease-in-out infinite alternate;
+      box-shadow:0 0 20px var(--primary);
+    }
+    @keyframes bounce{to{transform: translateY(-12px) scale(1.05)}}
+    /* toasts */
+    .toasts{position:fixed; right:16px; bottom:16px; display:flex; flex-direction:column; gap:8px; z-index:60}
+    .toast{
+      background:#0b1124ea; color:var(--txt); border:1px solid var(--stroke); border-left:4px solid var(--primary);
+      border-radius:12px; padding:10px 12px; min-width:200px; box-shadow:var(--shadow)
+    }
+    .toast.err{border-left-color:var(--err)}
+    .label{font-size:12px; color:var(--muted); margin-bottom:6px}
+    .pill{display:inline-block;padding:6px 10px;border:1px solid var(--stroke);border-radius:999px;background:#00000024}
   </style>
 </head>
 <body>
-  <h1>Human Helper — API Demo</h1>
+  <div class="spinner" id="spinner"><div class="dot"></div></div>
+  <div class="toasts" id="toasts"></div>
 
-  <div class="card" id="health">
-    <h3>Health</h3>
-    <button id="btnHealth">Check /health</button>
-    <div id="healthOut"></div>
-  </div>
-
-  <div class="card" id="auth">
-    <h3>Login</h3>
-    <label>Mobile</label>
-    <input id="mobile" placeholder="9999999999" />
-    <button id="btnLogin">Login → get token</button>
-    <div id="authOut"></div>
-  </div>
-
-  <div class="card" id="wallet">
-    <h3>Wallet</h3>
-    <div class="row">
-      <div>
-        <button id="btnBalance">Get Balance</button>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <h1>Human Helper — API Demo</h1>
       </div>
-      <div>
-        <button id="btnTxns">Get Transactions</button>
-      </div>
-    </div>
-    <div class="row">
-      <div>
-        <button id="btnEarnings">Get Earnings</button>
-      </div>
-      <div>
-        <label>Deposit (test)</label>
-        <input id="depAmt" type="number" value="20" />
-        <button id="btnDeposit">Deposit</button>
-      </div>
-    </div>
-    <div class="row">
-      <div>
-        <label>Withdraw (min ₹100)</label>
-        <input id="wdAmt" type="number" value="100" />
-        <select id="wdProv">
-          <option value="razorpay">razorpay</option>
+      <div class="env">
+        <small>Environment</small>
+        <select id="env">
+          <option value="https://api.humanhelperai.in">Production</option>
+          <option value="http://127.0.0.1:5000">Local (127.0.0.1)</option>
+          <option value="custom">Custom…</option>
         </select>
-        <button id="btnWithdraw">Withdraw</button>
+        <input id="base" placeholder="Custom API base…" style="min-width:230px" />
+        <button id="saveEnv" class="ghost">Save</button>
       </div>
-      <div>
-        <label>Earn content (demo)</label>
-        <input id="vidId" placeholder="video-123" />
-        <select id="ctype">
-          <option value="video">video</option>
-          <option value="short">short</option>
-        </select>
-        <input id="dur" type="number" value="120" />
-        <button id="btnEarn">Send /earn</button>
-      </div>
+    </header>
+
+    <div class="grid">
+      <section class="card stack">
+        <div class="title">Health</div>
+        <div class="row">
+          <button id="btnHealth" title="GET /health">Check /health</button>
+          <div class="badge"><span id="statusBadge">unknown</span></div>
+        </div>
+        <pre class="console" id="healthOut" aria-live="polite"></pre>
+      </section>
+
+      <section class="card stack">
+        <div class="title">Login</div>
+        <div class="row">
+          <input id="mobile" placeholder="Mobile (10 digits)" inputmode="numeric" />
+        </div>
+        <div class="row">
+          <button id="btnLogin">Login → get token</button>
+          <div class="pill" id="tokenState">No token</div>
+        </div>
+      </section>
     </div>
-    <pre id="walletOut"></pre>
+
+    <section class="card stack" style="margin-top:16px">
+      <div class="title">Wallet</div>
+      <div class="split">
+        <div class="stack">
+          <div class="row">
+            <button id="btnBalance">Get Balance</button>
+            <button id="btnTxns" class="secondary">Get Transactions</button>
+          </div>
+          <div class="row">
+            <button id="btnEarns">Get Earnings</button>
+          </div>
+        </div>
+        <div class="stack">
+          <label class="label">Deposit (test)</label>
+          <div class="row">
+            <input id="depositAmt" value="20" />
+            <button id="btnDeposit" class="secondary">Deposit</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="split">
+        <div class="stack">
+          <label class="label">Withdraw (min ₹100)</label>
+          <input id="withdrawAmt" value="100" />
+          <div class="row">
+            <select id="withdrawProv">
+              <option value="razorpay">razorpay</option>
+            </select>
+            <button id="btnWithdraw">Withdraw</button>
+          </div>
+        </div>
+        <div class="stack">
+          <label class="label">Earn content (demo)</label>
+          <input id="earnId" value="video-123" />
+          <div class="row">
+            <select id="earnType">
+              <option value="video">video</option>
+              <option value="short">short</option>
+            </select>
+            <input id="earnDur" value="120" />
+            <button id="btnEarn" class="secondary">Send /earn</button>
+          </div>
+        </div>
+      </div>
+
+      <pre class="console" id="out"></pre>
+      <div class="footer-note">TIP: your token & selected API base are saved in your browser.</div>
+    </section>
   </div>
 
-  <script src="app.js"></script>
+  <script src="./app.js"></script>
 </body>
 </html>

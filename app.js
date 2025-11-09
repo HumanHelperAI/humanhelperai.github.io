@@ -1,112 +1,256 @@
-const API_BASE = "https://api.humanhelperai.in";
-let TOKEN = "";
-const H = (id) => document.getElementById(id);
-const J = (obj) => JSON.stringify(obj, null, 2);
+/* Human Helper — colorful demo UI
+   - Environment switcher (prod/local/custom)
+   - Spinner + toasts
+   - Pretty JSON console
+   - All API calls with robust error handling
+*/
 
-async function api(path, {method="GET", body=null, auth=false} = {}) {
-  const headers = { "Content-Type": "application/json" };
-  if (auth && TOKEN) headers["Authorization"] = `Bearer ${TOKEN}`;
-  const res = await fetch(`${API_BASE}${path}`, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : null,
-    cache: "no-cache",
-  });
+const $$ = (q, el = document) => el.querySelector(q);
+const out = $$('#out');
+const healthOut = $$('#healthOut');
+const spinner = $$('#spinner');
+const toasts = $$('#toasts');
+
+const ENV_SELECT = $$('#env');
+const BASE_INPUT = $$('#base');
+const SAVE_ENV = $$('#saveEnv');
+const STATUS_BADGE = $$('#statusBadge');
+const TOKEN_STATE = $$('#tokenState');
+
+const LS = {
+  BASE: 'hh.base',
+  TOKEN: 'hh.token',
+  MOBILE: 'hh.mobile',
+};
+
+// ---------- UI helpers ----------
+function setLoading(on) {
+  spinner.style.display = on ? 'grid' : 'none';
+}
+function showToast(msg, type = 'ok') {
+  const t = document.createElement('div');
+  t.className = `toast ${type === 'err' ? 'err' : ''}`;
+  t.textContent = msg;
+  toasts.appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+function pretty(v) {
+  try { return JSON.stringify(v, null, 2); }
+  catch { return String(v); }
+}
+function setConsole(el, v) { el.textContent = pretty(v); }
+
+// ---------- ENV handling ----------
+function initEnv() {
+  const storedBase = localStorage.getItem(LS.BASE) || 'https://api.humanhelperai.in';
+  BASE_INPUT.value = storedBase;
+  if (storedBase === 'https://api.humanhelperai.in') ENV_SELECT.value = storedBase;
+  else if (storedBase === 'http://127.0.0.1:5000') ENV_SELECT.value = storedBase;
+  else ENV_SELECT.value = 'custom';
+}
+function currentBase() {
+  return BASE_INPUT.value.trim().replace(/\/+$/,'');
+}
+SAVE_ENV.addEventListener('click', () => {
+  const base = currentBase();
+  if (!/^https?:\/\//.test(base)) return showToast('Enter valid http(s) URL', 'err');
+  localStorage.setItem(LS.BASE, base);
+  showToast(`Base set → ${base}`);
+});
+ENV_SELECT.addEventListener('change', () => {
+  if (ENV_SELECT.value === 'custom') { BASE_INPUT.focus(); return; }
+  BASE_INPUT.value = ENV_SELECT.value;
+  localStorage.setItem(LS.BASE, BASE_INPUT.value);
+  showToast(`Base switched → ${BASE_INPUT.value}`);
+});
+
+// ---------- Auth / state ----------
+function setToken(token) {
+  if (token) {
+    localStorage.setItem(LS.TOKEN, token);
+    TOKEN_STATE.textContent = 'Token set ✔';
+    TOKEN_STATE.style.borderColor = '#21d19f';
+  } else {
+    localStorage.removeItem(LS.TOKEN);
+    TOKEN_STATE.textContent = 'No token';
+    TOKEN_STATE.style.borderColor = '';
+  }
+}
+function getToken() { return localStorage.getItem(LS.TOKEN) || ''; }
+
+// ---------- Networking ----------
+async function fetchJson(path, { method = 'GET', body, auth = false } = {}) {
+  const url = `${currentBase()}${path}`;
+  const headers = { 'Accept': 'application/json' };
+  if (body) headers['Content-Type'] = 'application/json';
+  if (auth) {
+    const t = getToken();
+    if (!t) throw new Error('No token set. Login first.');
+    headers['Authorization'] = `Bearer ${t}`;
+  }
+  const res = await fetch(url, { method, headers, body: body ? JSON.stringify(body) : undefined });
   const text = await res.text();
-  try { return { status: res.status, json: JSON.parse(text) }; }
-  catch { return { status: res.status, text }; }
+  let json;
+  try { json = text ? JSON.parse(text) : {}; } catch(e){ throw new Error(`Bad JSON: ${text}`); }
+  if (!res.ok) {
+    const msg = json?.detail?.detail || json?.detail || json?.error || res.statusText;
+    const err = new Error(msg || 'Request failed');
+    err.payload = json;
+    throw err;
+  }
+  return json;
 }
 
-// Health
-H("btnHealth").onclick = async () => {
-  const out = H("healthOut");
-  const r = await api("/health");
-  out.innerHTML = `<pre>${J(r.json || r.text)}</pre>`;
-};
-
-// Login
-H("btnLogin").onclick = async () => {
-  const m = H("mobile").value.trim();
-  if (!m) return H("authOut").innerHTML = `<span class="err">Enter mobile</span>`;
-  const r = await api("/login", { method: "POST", body: { mobile: m }});
-  if (r.json && r.json.token) {
-    TOKEN = r.json.token;
-    H("authOut").innerHTML = `<span class="ok">Token set ✔</span>`;
-    localStorage.setItem("hh_token", TOKEN);
-    localStorage.setItem("hh_mobile", m);
-  } else {
-    H("authOut").innerHTML = `<pre class="err">${J(r.json || r.text)}</pre>`;
-  }
-};
-
-// Helpers
-function mob() { return (H("mobile").value.trim() || localStorage.getItem("hh_mobile") || ""); }
-function ensureMob(outEl) {
-  const m = mob();
-  if (!m) { outEl.innerHTML = `<span class="err">Login first</span>`; return null; }
+// ---------- Validators ----------
+function parseMobileRaw() {
+  const m = $$('#mobile').value.replace(/\D/g,'').slice(-10);
+  if (m.length !== 10) throw new Error('Enter 10-digit mobile');
+  localStorage.setItem(LS.MOBILE, m);
+  return m;
+}
+function getMobileFromState() {
+  const m = localStorage.getItem(LS.MOBILE);
+  if (!m) throw new Error('No mobile set. Login again.');
   return m;
 }
 
-// Balance
-H("btnBalance").onclick = async () => {
-  const out = H("walletOut");
-  const m = ensureMob(out); if (!m) return;
-  const r = await api(`/balance/${m}`);
-  out.textContent = J(r.json || r.text);
-};
+// ---------- Actions ----------
+async function doHealth() {
+  setLoading(true);
+  try {
+    const j = await fetchJson('/health');
+    setConsole(healthOut, j);
+    STATUS_BADGE.textContent = j.status || 'ok';
+    showToast('Health OK');
+  } catch (e) {
+    setConsole(healthOut, e.payload || { error: e.message });
+    STATUS_BADGE.textContent = 'error';
+    showToast(e.message, 'err');
+  } finally { setLoading(false); }
+}
 
-// Transactions
-H("btnTxns").onclick = async () => {
-  const out = H("walletOut");
-  const m = ensureMob(out); if (!m) return;
-  const r = await api(`/transactions/${m}`);
-  out.textContent = J(r.json || r.text);
-};
+async function doLogin() {
+  setLoading(true);
+  try {
+    const mobile = parseMobileRaw();
+    const j = await fetchJson('/login', { method:'POST', body:{ mobile } });
+    const token = j?.token;
+    if (!token) throw new Error('No token returned');
+    setToken(token);
+    showToast('Logged in');
+    setConsole(out, j);
+  } catch (e) {
+    setToken('');
+    setConsole(out, e.payload || { error: e.message });
+    showToast(e.message, 'err');
+  } finally { setLoading(false); }
+}
 
-// Earnings
-H("btnEarnings").onclick = async () => {
-  const out = H("walletOut");
-  const m = ensureMob(out); if (!m) return;
-  const r = await api(`/earnings/${m}`, { auth: true });
-  out.textContent = J(r.json || r.text);
-};
+async function doBalance() {
+  setLoading(true);
+  try {
+    const mobile = getMobileFromState();
+    const j = await fetchJson(`/balance/${mobile}`, { auth:true });
+    setConsole(out, j);
+    showToast('Balance fetched');
+  } catch (e) {
+    setConsole(out, e.payload || { error: e.message });
+    showToast(e.message, 'err');
+  } finally { setLoading(false); }
+}
 
-// Deposit (test)
-H("btnDeposit").onclick = async () => {
-  const out = H("walletOut");
-  const m = ensureMob(out); if (!m) return;
-  const amt = parseFloat(H("depAmt").value || "0");
-  const r = await api("/deposit", { method: "POST", body: { mobile: m, amount: amt }});
-  out.textContent = J(r.json || r.text);
-};
+async function doTxns() {
+  setLoading(true);
+  try {
+    const mobile = getMobileFromState();
+    const j = await fetchJson(`/transactions/${mobile}`, { auth:true });
+    setConsole(out, j);
+    showToast('Transactions fetched');
+  } catch (e) {
+    setConsole(out, e.payload || { error: e.message });
+    showToast(e.message, 'err');
+  } finally { setLoading(false); }
+}
 
-// Withdraw
-H("btnWithdraw").onclick = async () => {
-  const out = H("walletOut");
-  const m = ensureMob(out); if (!m) return;
-  const amt = parseFloat(H("wdAmt").value || "0");
-  const provider = H("wdProv").value;
-  const r = await api("/withdraw", { method: "POST", body: { mobile: m, amount: amt, provider }});
-  out.textContent = J(r.json || r.text);
-};
+async function doEarns() {
+  setLoading(true);
+  try {
+    const mobile = getMobileFromState();
+    const j = await fetchJson(`/earnings/${mobile}`, { auth:true });
+    setConsole(out, j);
+    showToast('Earnings fetched');
+  } catch (e) {
+    setConsole(out, e.payload || { error: e.message });
+    showToast(e.message, 'err');
+  } finally { setLoading(false); }
+}
 
-// Earn demo
-H("btnEarn").onclick = async () => {
-  const out = H("walletOut");
-  const m = ensureMob(out); if (!m) return;
-  const vid = (H("vidId").value || `video-${Date.now()}`);
-  const ctype = H("ctype").value;
-  const dur = parseInt(H("dur").value || "0", 10);
-  const r = await api("/earn", { method: "POST",
-    body: { mobile: m, video_id: vid, content_type: ctype, duration: dur }
-  });
-  out.textContent = J(r.json || r.text);
-};
+async function doDeposit() {
+  setLoading(true);
+  try {
+    const mobile = getMobileFromState();
+    const amt = Number($$('#depositAmt').value || 0);
+    const j = await fetchJson('/deposit', { method:'POST', body:{ mobile, amount: amt }, auth:true });
+    setConsole(out, j);
+    showToast('Deposit posted');
+  } catch (e) {
+    setConsole(out, e.payload || { error: e.message });
+    showToast(e.message, 'err');
+  } finally { setLoading(false); }
+}
 
-// Restore token if present
-(function bootstrap() {
-  const t = localStorage.getItem("hh_token");
-  const m = localStorage.getItem("hh_mobile");
-  if (t) TOKEN = t;
-  if (m && !H("mobile").value) H("mobile").value = m;
-})();
+async function doWithdraw() {
+  setLoading(true);
+  try {
+    const mobile = getMobileFromState();
+    const amount = Number($$('#withdrawAmt').value || 0);
+    const provider = $$('#withdrawProv').value;
+    const j = await fetchJson('/withdraw', { method:'POST', body:{ mobile, amount, provider }, auth:true });
+    setConsole(out, j);
+    showToast('Withdraw initiated');
+  } catch (e) {
+    setConsole(out, e.payload || { error: e.message });
+    showToast(e.message, 'err');
+  } finally { setLoading(false); }
+}
+
+async function doEarn() {
+  setLoading(true);
+  try {
+    const mobile = getMobileFromState();
+    const video_id = ($$('#earnId').value || '').trim() || `vid-${Date.now()}`;
+    const content_type = $$('#earnType').value;
+    const duration = Number($$('#earnDur').value || 0);
+    const body = { mobile, video_id, content_type, duration };
+    const j = await fetchJson('/earn', { method:'POST', body, auth:true });
+    setConsole(out, j);
+    showToast(j?.message || 'Earned');
+  } catch (e) {
+    setConsole(out, e.payload || { error: e.message });
+    showToast(e.message, 'err');
+  } finally { setLoading(false); }
+}
+
+// ---------- Wire up ----------
+function initMobilePrefill() {
+  const m = localStorage.getItem(LS.MOBILE);
+  if (m) $$('#mobile').value = m;
+  const t = localStorage.getItem(LS.TOKEN);
+  setToken(t);
+}
+function bind() {
+  $$('#btnHealth').addEventListener('click', doHealth);
+  $$('#btnLogin').addEventListener('click', doLogin);
+  $$('#btnBalance').addEventListener('click', doBalance);
+  $$('#btnTxns').addEventListener('click', doTxns);
+  $$('#btnEarns').addEventListener('click', doEarns);
+  $$('#btnDeposit').addEventListener('click', doDeposit);
+  $$('#btnWithdraw').addEventListener('click', doWithdraw);
+  $$('#btnEarn').addEventListener('click', doEarn);
+}
+
+// boot
+initEnv();
+initMobilePrefill();
+bind();
+doHealth().catch(()=>{});
